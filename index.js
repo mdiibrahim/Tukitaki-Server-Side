@@ -181,6 +181,20 @@ async function run() {
             const result = await productsCollection.insertOne(product);
             res.send(result);
         })
+        app.get('/products/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            console.log(query)
+            const products = await productsCollection.find({}).toArray();
+            
+            const filter = products.filter(product => {
+                
+                if (product.sellerEmail === query.email) {
+                    return product;
+                }
+            })
+            res.send(filter)
+        })
 
 
     } finally {
