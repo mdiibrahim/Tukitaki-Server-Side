@@ -40,6 +40,7 @@ async function run() {
     try {
         const categoriesCollection = client.db("tukitaki").collection("categories");
         const usersCollection = client.db("tukitaki").collection("users");
+        const productsCollection = client.db("tukitaki").collection("products");
         const verifyAdmin = async (req, res, next) => {
             const decodedEmail = req.decoded.email;
             const query = { email: decodedEmail };
@@ -87,24 +88,23 @@ async function run() {
         });
         app.get('/users/admin/:email', async (req, res) => {
             const email = req.params.email;
-            console.log(email)
+            
             const query = { email }
             const user = await usersCollection.findOne(query);
             res.send({ isAdmin: user?.role === 'admin' });
         })
         app.get('/users/seller/:email', async (req, res) => {
             const email = req.params.email;
-            console.log(email)
             const query = { email }
-            const user = await usersCollection.findOne(query);
-            res.send({ isSeller: user?.role === 'seller' });
+            const seller = await usersCollection.findOne(query);
+            
+            res.send({ isSeller: seller?.role === 'seller', seller});
         })
         app.get('/users/buyer/:email', async (req, res) => {
             const email = req.params.email;
-            console.log(email)
             const query = { email }
-            const user = await usersCollection.findOne(query);
-            res.send({ isBuyer: user?.role === 'buyer' });
+            const buyer = await usersCollection.findOne(query);
+            res.send({ isBuyer: buyer?.role === 'buyer', buyer });
         })
         // app.get('/users', async (req, res) => {
         //     const user = req.body;
@@ -118,6 +118,13 @@ async function run() {
                 }
             })
             res.send(filter)
+        })
+        app.get('/users/sellers/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const user = await usersCollection.findOne(filter);
+           
+            res.send(user);
         })
         app.get('/users/buyers', async (req, res) => {
             const users = await usersCollection.find({}).toArray();
@@ -144,7 +151,7 @@ async function run() {
             const id = req.params.id;
             const verified = req.body.verified
             const query = { _id: ObjectId(id) }
-            console.log(query)
+            
             const options = { upsert: true };
             const updatedDoc = {
                 $set: {
@@ -165,8 +172,13 @@ async function run() {
                     verified: verified
                 }
             }
-            console.log(verified)
+           
             const result = await usersCollection.updateOne(query, updatedDoc, options);
+            res.send(result);
+        })
+        app.post('/products', async (req, res)=>{
+            const product = req.body;
+            const result = await productsCollection.insertOne(product);
             res.send(result);
         })
 
