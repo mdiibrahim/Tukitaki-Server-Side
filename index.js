@@ -21,7 +21,7 @@ function verifyJWT(req, res, next) {
     if (authHeader) {
         const token = authHeader.split(' ')[1];
 
-        jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
             if (err) {
                 return res.status(403).send({ message: 'forbidden access' })
             }
@@ -65,12 +65,11 @@ async function run() {
             const email = req.query.email;
             const query = { email: email };
             const user = await usersCollection.findOne(query);
-            if (!user) {
-                res.status(403).send({ accessToken: null })
+            if (user) {
+                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1h' })
+                return res.send({ accessToken: token });
             }
-            const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
-            return res.send({ accessToken: token });
-
+            res.status(403).send({ accessToken: '' })
         });
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -139,6 +138,35 @@ async function run() {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const result = await usersCollection.deleteOne(filter);
+            res.send(result);
+        })
+        app.put("/users/sellers/verify/:id", async (req, res) => {
+            const id = req.params.id;
+            const verified = req.body.verified
+            const query = { _id: ObjectId(id) }
+            console.log(query)
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    verified: verified
+                }
+            }
+            const result = await usersCollection.updateOne(query, updatedDoc, options);
+            res.send(result);
+        })
+        app.put("/users/sellers/unverify/:id", async (req, res) => {
+            const id = req.params.id;
+            const verified = req.body.verified
+            
+            const query = { _id: ObjectId(id) }
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    verified: verified
+                }
+            }
+            console.log(verified)
+            const result = await usersCollection.updateOne(query, updatedDoc, options);
             res.send(result);
         })
 
