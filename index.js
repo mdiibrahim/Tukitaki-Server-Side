@@ -168,20 +168,6 @@ async function run() {
             const result = await usersCollection.updateOne(query, updatedDoc, options);
             res.send(result);
         })
-        app.put("/products/sellers/verify/:id", async (req, res) => {
-            const id = req.params.id;
-            const verified = req.body.verified
-            const query = { _id: ObjectId(id) }
-            
-            const options = { upsert: true };
-            const updatedDoc = {
-                $set: {
-                    verified: verified
-                }
-            }
-            const result = await productsCollection.updateOne(query, updatedDoc, options);
-            res.send(result);
-        })
         app.put("/users/sellers/unverify/:id", async (req, res) => {
             const id = req.params.id;
             const verified = req.body.verified
@@ -197,20 +183,6 @@ async function run() {
             const result = await usersCollection.updateOne(query, updatedDoc, options);
             res.send(result);
         })
-        app.patch("/products/sellers/unverify/:id", async (req, res) => {
-            const id = req.params.id;
-            const verified = req.body.verified
-            const query = { _id: ObjectId(id) }
-            
-            const options = { upsert: true };
-            const updatedDoc = {
-                $set: {
-                    verified: verified
-                }
-            }
-            const result = await productsCollection.updateOne(query, updatedDoc, options);
-            res.send(result);
-        })
         app.post('/products', async (req, res)=>{
             const product = req.body;
             const result = await productsCollection.insertOne(product);
@@ -219,10 +191,11 @@ async function run() {
         app.get('/products/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email };
+            console.log(email, query)
             const products = await productsCollection.find({}).toArray();
             
             const filter = products.filter(product => {
-                
+                console.log(product.sellerEmail)
                 if (product.sellerEmail === query.email) {
                     return product;
                 }
