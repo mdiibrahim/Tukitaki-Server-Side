@@ -40,6 +40,7 @@ async function run() {
         const categoriesCollection = client.db("tukitaki").collection("categories");
         const usersCollection = client.db("tukitaki").collection("users");
         const productsCollection = client.db("tukitaki").collection("products");
+        const reportedItemsCollection = client.db("tukitaki").collection("reportedItems");
         const verifyAdmin = async (req, res, next) => {
             const decodedEmail = req.decoded.email;
             const query = { email: decodedEmail };
@@ -60,6 +61,7 @@ async function run() {
             const category_name = req.params.category_name;
             const products = await productsCollection.find({}).toArray();
             const filter = products.filter(product => {
+                console.log(product.mobileName)
                 if (product.mobileBrand.toLocaleLowerCase() === category_name.toLocaleLowerCase()) {
                     return product;
                 }
@@ -195,7 +197,7 @@ async function run() {
             const result = await usersCollection.updateOne(query, updatedDoc, options);
             res.send(result);
         })
-        app.put("/products/sellers/unverify/:id", async (req, res) => {
+        app.patch("/products/sellers/unverify/:id", async (req, res) => {
             const id = req.params.id;
             const verified = req.body.verified
             const query = { _id: ObjectId(id) }
@@ -239,6 +241,23 @@ async function run() {
             const id = req.params.id;
             const product = { _id: ObjectId(id) };
             const result = await productsCollection.deleteOne(product);
+            res.send(result);
+
+        })
+        app.post('/reported-items', async (req, res) => {
+            const product = req.body;
+            const result = await reportedItemsCollection.insertOne(product);
+            res.send(result);
+        })
+        app.get('/reported-items', async (req, res) => {
+            
+            const result = await reportedItemsCollection.find({}).toArray();
+            res.send(result);
+        })
+        app.delete('/reported-items/:id', async (req, res) => {
+            const id = req.params.id;
+            const product = { _id: ObjectId(id) };
+            const result = await reportedItemsCollection.deleteOne(product);
             res.send(result);
 
         })
