@@ -17,7 +17,6 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 function verifyJWT(req, res, next) {
 
     const authHeader = req.headers.authorization;
-    console.log(authHeader)
     if (authHeader) {
         const token = authHeader.split(' ')[1];
 
@@ -57,10 +56,16 @@ async function run() {
             const categories = await categoriesCollection.find({}).toArray();
             res.send(categories);
         });
-        app.get('/category/:id', async (req, res) => {
-            const id = req.params.id;
-            const categories = await categoriesCollection.find({}).toArray();
-            res.send(categories);
+        app.get('/category/:category_name', async (req, res) => {
+            const category_name = req.params.category_name;
+            const products = await productsCollection.find({}).toArray();
+            const filter = products.filter(product => {
+                if (product.mobileBrand.toLocaleLowerCase() === category_name.toLocaleLowerCase()) {
+                    return product;
+                }
+            })
+            console.log(filter)
+            res.send(filter)
         });
         app.get('/jwt', async (req, res) => {
             const email = req.query.email;
@@ -184,7 +189,6 @@ async function run() {
         app.get('/products/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email };
-            console.log(query)
             const products = await productsCollection.find({}).toArray();
             
             const filter = products.filter(product => {
@@ -194,6 +198,14 @@ async function run() {
                 }
             })
             res.send(filter)
+        })
+        app.get('/products/advertise/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            console.log(id, filter)
+            const result = await productsCollection.findOne(filter);
+           
+            res.send(result);
         })
         app.delete('/products/:id', async (req, res) => {
             const id = req.params.id;
