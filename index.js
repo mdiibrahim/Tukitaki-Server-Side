@@ -41,6 +41,7 @@ async function run() {
         const usersCollection = client.db("tukitaki").collection("users");
         const productsCollection = client.db("tukitaki").collection("products");
         const reportedItemsCollection = client.db("tukitaki").collection("reportedItems");
+        const bookingsCollection = client.db("tukitaki").collection("bookings");
         const verifyAdmin = async (req, res, next) => {
             const decodedEmail = req.decoded.email;
             const query = { email: decodedEmail };
@@ -61,12 +62,11 @@ async function run() {
             const category_name = req.params.category_name;
             const products = await productsCollection.find({}).toArray();
             const filter = products.filter(product => {
-                console.log(product.mobileName)
                 if (product.mobileBrand.toLocaleLowerCase() === category_name.toLocaleLowerCase()) {
                     return product;
                 }
             })
-            console.log(filter)
+
             res.send(filter)
         });
         app.get('/jwt', async (req, res) => {
@@ -191,11 +191,9 @@ async function run() {
         app.get('/products/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email };
-            console.log(email, query)
             const products = await productsCollection.find({}).toArray();
             
             const filter = products.filter(product => {
-                console.log(product.sellerEmail)
                 if (product.sellerEmail === query.email) {
                     return product;
                 }
@@ -207,7 +205,6 @@ async function run() {
             const filter = { _id: ObjectId(id) };
             console.log(id, filter)
             const result = await productsCollection.findOne(filter);
-           
             res.send(result);
         })
         app.delete('/products/:id', async (req, res) => {
@@ -233,6 +230,12 @@ async function run() {
             const result = await reportedItemsCollection.deleteOne(product);
             res.send(result);
 
+        })
+        app.post('/booking', async (req, res) => {
+            const booking = req.body;
+         
+            const result = await bookingsCollection.insertOne(booking);
+            res.send(result);
         })
 
 
